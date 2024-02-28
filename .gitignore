@@ -1,0 +1,79 @@
+# Metadatos de Metals y Bloop (LSP y compilación para Scala)
+.metals/
+.bloop/
+
+# Archivos de configuración de VSCode
+.vscode/
+
+# Archivos de compilación de Scala/SBT
+target/
+project/target/
+project/project/
+
+# Archivos de configuración específicos de la máquina
+/.idea/
+*.iml
+*.iws
+*.ipr
+
+# Archivos de logs
+*.log
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de paquetes
+*.jar
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Archivos y carpetas relacionadas con la compilación y ejecución
+out/
+dist/
+tmp/
+
+# Ficheros de packaging
+*.msi
+*.exe
+*.zip
+*.tar.gz
+*.war
+
+# Ficheros generados por la ejecución
+RUNNING_PID
+
+# Archivos de base de datos local que no deberían ser compartidos
+*.db
+*.sqlitedb
+
+# Credenciales y archivos de configuración sensibles
+*.pem
+*.key
+.env
+.secret
+
+# Docker: ignorar todo excepto archivos Dockerfile y docker-compose.yml
+docker/*
+!docker/Dockerfile
+!docker/docker-compose.yml
+
+# Logs de Docker
+docker/logs
+
+# Archivos temporales creados por SBT
+*.class
+*.log
+
+# SBT specific
+.cache
+.history
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
