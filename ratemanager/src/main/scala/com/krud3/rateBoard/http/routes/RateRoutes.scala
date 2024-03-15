@@ -9,13 +9,14 @@ import org.http4s.dsl.impl._
 import org.http4s.server._
 import cats.effect._
 import cats.implicits._
+import org.typelevel.log4cats.Logger
 
 import scala.collection.mutable
 import com.krud3.rateBoard.domain.rate._
 import java.util.UUID
 import com.krud3.rateBoard.http.responses._
 
-class RateRoutes[F[_]: Concurrent] extends Http4sDsl[F] {
+class RateRoutes[F[_]: Concurrent: Logger] extends Http4sDsl[F] {
 
     // "database"
     private val database = mutable.Map[UUID, Rate]()
@@ -39,13 +40,17 @@ class RateRoutes[F[_]: Concurrent] extends Http4sDsl[F] {
         Rate(
             hotel_id = UUID.randomUUID(),
             date = System.currentTimeMillis(),
-            rate = 100.0
+            rate = 80.0
         ).pure[F]
+
+    import com.krud3.rateBoard.logging.syntax._
 
     private val createRateRoute: HttpRoutes[F] = HttpRoutes.of[F] {
         case POST -> Root / "create" =>
             for {
-                rate <- createRate()
+                rate <- createRate().logError(e => s"Parsing payload failed $e")
+                _    <- Logger[F].info(s"Created Rate $rate")
+                _    <- database.put(rate.hotel_id, rate).pure[F]
                 resp <- Created(rate.hotel_id)
             }yield resp
     }
@@ -53,12 +58,12 @@ class RateRoutes[F[_]: Concurrent] extends Http4sDsl[F] {
 
     // PUT /rates/uuid  { rateInfo }
     private val updateRateRoute: HttpRoutes[F] = HttpRoutes.of[F] {
-        case PUT -> Root / UUIDVar(hotel_id) =>
+        case req @ PUT -> Root / UUIDVar(hotel_id) =>
             database.get(hotel_id) match {
                 case Some(rate) =>
                     for {
-                        rate <- createRate()
-                        _ <- database.put(hotel_id, rate).pure[F]
+                        rate <- req.as[Rate]
+                        _    <- database.put(hotel_id, rate).pure[F]
                         resp <- Ok()
                     }yield resp
                 case None       => NotFound(FailureResponse(s"Can not update Rate $hotel_id not found"))
@@ -71,8 +76,7 @@ class RateRoutes[F[_]: Concurrent] extends Http4sDsl[F] {
             database.get(hotel_id) match {
                 case Some(rate) =>
                     for {
-                        rate <- createRate()
-                        _ <- database.remove(hotel_id).pure[F]
+                        _    <- database.remove(hotel_id).pure[F]
                         resp <- Ok()
                     }yield resp
                 case None       => NotFound(FailureResponse(s"Can not delete Rate $hotel_id not found"))
@@ -85,5 +89,5 @@ class RateRoutes[F[_]: Concurrent] extends Http4sDsl[F] {
 }
 
 object RateRoutes {
-    def apply[F[_]: Concurrent] = new RateRoutes[F]
+    def apply[F[_]: Concurrent: Logger] = new RateRoutes[F]
 }
