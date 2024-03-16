@@ -50,7 +50,7 @@ class LiveRates[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Rate
                 date,
                 rate
             FROM rates
-        """"
+        """
         .query[Rate]
         .to[List]
         .transact(xa)
